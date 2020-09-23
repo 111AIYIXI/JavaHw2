@@ -11,9 +11,17 @@ package cipher;
  * to add additional methods or alter the provided code to achieve this.
  */
 public class Main {
+    public static final CipherFactory factory;
+    private Cipher cipher;
+
+    static {
+        factory = new CipherFactory();
+    }
 
     public static void main(String[] args) {
-        // TODO implement
+        Main main = new Main();
+        int pos = 0;
+        pos = main.parseCipherType(args, pos);
     }
 
     /**
@@ -28,7 +36,18 @@ public class Main {
         switch (cmdFlag) {
             case "--caesar":
                 // TODO create a Caesar cipher object with the given shift parameter
-                break;
+                if (pos == args.length) {
+                    System.err.println("No argument follows the flag \"--caesar\".");
+                    throw new IllegalArgumentException();
+                }
+                int shift = 0;
+                try {
+                    shift = Integer.parseInt(args[pos++]);
+                } catch (NumberFormatException e) {
+                    System.err.println("The argument that follows \"--caesar\" is illegal. The characters in the string must all be decimal digits, except that the first character may be an ASCII plus sign '+' ('\\u002B') to indicate a positive value.");
+                    throw new IllegalArgumentException();
+                }
+                cipher = factory.getCaesarCipher(shift);
             case "--random":
                 // TODO create a random substitution cipher object
                 break;

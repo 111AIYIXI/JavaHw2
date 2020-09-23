@@ -2,9 +2,10 @@ package cipher;
 
 import java.math.BigInteger;
 
-/** Factory class for creating cipher objects. */
+/**
+ * Factory class for creating cipher objects.
+ */
 public class CipherFactory {
-
     /**
      * Returns: a monoalphabetic substitution cipher with the English alphabet mapped to the
      * provided alphabet.<br>
@@ -23,7 +24,7 @@ public class CipherFactory {
      * @param shift the cipher's shift parameter
      */
     public Cipher getCaesarCipher(int shift) {
-        return null; // TODO implement
+        return new CaesarCipher(shift);
     }
 
     /**
@@ -35,12 +36,16 @@ public class CipherFactory {
         return null; // TODO implement
     }
 
-    /** Returns a new monoalphabetic substitution cipher with a randomly generated mapping. */
+    /**
+     * Returns a new monoalphabetic substitution cipher with a randomly generated mapping.
+     */
     public Cipher getRandomSubstitutionCipher() {
         return null; // TODO implement
     }
 
-    /** Returns a new RSA cipher with a randomly generated keys. */
+    /**
+     * Returns a new RSA cipher with a randomly generated keys.
+     */
     public Cipher getRSACipher() {
         return null; // TODO implement
     }
