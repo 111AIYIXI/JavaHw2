@@ -12,8 +12,8 @@ public class CaesarCipher extends AbstractCipher {
         theKey = key;
         alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         shiftedAlphabet = alphabet.substring(key) + alphabet.substring(0, key);
-        alphabet = alphabet + alphabet.toLowerCase();
-        shiftedAlphabet = shiftedAlphabet + shiftedAlphabet.toLowerCase();
+        alphabet = alphabet.toLowerCase();
+        shiftedAlphabet = shiftedAlphabet.toLowerCase();
     }
 
     private char transformLetter(char c, String from, String to) {

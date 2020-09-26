@@ -48,11 +48,23 @@ public class Main {
                     throw new IllegalArgumentException();
                 }
                 cipher = factory.getCaesarCipher(shift);
+                break;
             case "--random":
                 // TODO create a random substitution cipher object
-                break;
+                if (pos == args.length) {
+                    System.err.println("No argument follows the flag \"--random\".");
+                    throw new IllegalArgumentException();
+                }
+                cipher = factory.getRandomSubstitutionCipher();
+            	break;
             case "--monoLoad":
                 // TODO load a monoaphabetic substitution cipher from a file
+                if (pos == args.length) {
+                    System.err.println("No argument follows the flag \"--monoLoad\".");
+                    throw new IllegalArgumentException();
+                }
+                // ??????????? How to check if the input arguement is correct here?
+                cipher = factory.getCaesarCipher(shift);
                 break;
             case "--vigenere":
                 // TODO create a new Vigenere Cipher with the given key
