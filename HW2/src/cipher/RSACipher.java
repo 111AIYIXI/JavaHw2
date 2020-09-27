@@ -2,276 +2,264 @@ package cipher;
 
 import java.math.BigInteger;
 import java.util.Random;
-import java.io.*;
-import java.io.*;
 import java.util.*;
-import java.sql.*;
 import javax.swing.*;
 
 public class RSACipher {
-	/**
-	 * Bit length of each prime number.
-	 */
-	int primeSize;
+    /**
+     * Bit length of each prime number.
+     */
+    int primeSize;
 
-	/**
-	 * Two distinct large prime numbers p and q.
-	 */
-	BigInteger p, q;
+    /**
+     * Two distinct large prime numbers p and q.
+     */
+    BigInteger p, q;
 
-	/**
-	 * Modulus N.
-	 */
-	BigInteger N;
+    /**
+     * Modulus N.
+     */
+    BigInteger N;
 
-	/**
-	 * r = ( p ¨C 1 ) * ( q ¨C 1 )
-	 */
-	BigInteger r;
+    /**
+     * r = ( p ï¿½C 1 ) * ( q ï¿½C 1 )
+     */
+    BigInteger r;
 
-	/**
-	 * Public exponent E and Private exponent D
-	 */
-	BigInteger E, D;
+    /**
+     * Public exponent E and Private exponent D
+     */
+    BigInteger E, D;
 
-	String nt, dt, et;
-	/**
-	 * Constructor.
-	 *
-	 * @param primeSize Bit length of each prime number.
-	 */
+    String nt, dt, et;
+    /**
+     * Constructor.
+     *
+     * @param primeSize Bit length of each prime number.
+     */
 
-	String publicKey;
-	String privateKey;
-	String randomNumber;
+    String publicKey;
+    String privateKey;
+    String randomNumber;
 
-	BigInteger[] ciphertext;
-	int m[] = new int[1000];
-	String st[] = new String[1000];
-	String str = "";
-	String sarray1[] = new String[100000];
+    BigInteger[] ciphertext;
+    int m[] = new int[1000];
+    String st[] = new String[1000];
+    String str = "";
+    String sarray1[] = new String[100000];
 
-	StringBuffer sb1 = new StringBuffer();
-	String inputMessage, encryptedData, decryptedMessage;
+    StringBuffer sb1 = new StringBuffer();
+    String inputMessage, encryptedData, decryptedMessage;
 
-	public RSACipher(int primeSize) {
+    public RSACipher(int primeSize) {
+        this.primeSize = primeSize;
+        generatePrimeNumbers();  // Generate two distinct large prime numbers p and q.
+        generatePublicPrivateKeys();  // Generate Public and Private Keys.
 
-		this.primeSize = primeSize;
+        BigInteger publicKeyB = getE();
+        BigInteger privateKeyB = getD();
+        BigInteger randomNumberB = getN();
+        publicKey = publicKeyB.toString();
+        privateKey = privateKeyB.toString();
+        randomNumber = randomNumberB.toString();
+        System.out.println("Public Key (E,N): " + publicKey + "," + randomNumber);
+        System.out.println("Private Key (D,N): " + privateKey + "," + randomNumber);
 
-// Generate two distinct large prime numbers p and q.
-		generatePrimeNumbers();
+        inputMessage = JOptionPane.showInputDialog(null, "Enter message to encrypt");  //Encrypt data
+        encryptedData = RSAencrypt(inputMessage);
+        System.out.println("Encrypted message" + encryptedData);
+        JOptionPane.showMessageDialog(null, "Encrypted Data " + "\n" + encryptedData);
 
-// Generate Public and Private Keys.
-		generatePublicPrivateKeys();
+        decryptedMessage = RSAdecrypt();  //Decrypt data
+        JOptionPane.showMessageDialog(null, "Decrypted Data " + "\n" + decryptedMessage);
+    }
 
-		BigInteger publicKeyB = getE();
-		BigInteger privateKeyB = getD();
-		BigInteger randomNumberB = getN();
-		publicKey = publicKeyB.toString();
-		privateKey = privateKeyB.toString();
-		randomNumber = randomNumberB.toString();
-		System.out.println("Public Key (E,N): " + publicKey + "," + randomNumber);
-		System.out.println("Private Key (D,N): " + privateKey + "," + randomNumber);
+    /**
+     * Generate two distinct large prime numbers p and q.
+     */
+    public void generatePrimeNumbers() {
+        p = new BigInteger(primeSize, 10, new Random());
 
-//Encrypt data
-		inputMessage = JOptionPane.showInputDialog(null, "Enter message to encrypt");
-		encryptedData = RSAencrypt(inputMessage);
-		System.out.println("Encrypted message" + encryptedData);
-		JOptionPane.showMessageDialog(null, "Encrypted Data " + "\n" + encryptedData);
+        do {
+            q = new BigInteger(primeSize, 10, new Random());
+        } while (q.compareTo(p) == 0);
+    }
 
-//Decrypt data
-		decryptedMessage = RSAdecrypt();
-		JOptionPane.showMessageDialog(null, "Decrypted Data " + "\n" + decryptedMessage);
+    /**
+     * Generate Public and Private Keys.
+     */
+    public void generatePublicPrivateKeys() {
 
-	}
+        N = p.multiply(q);  // N = p * q
 
-	/**
-	 * Generate two distinct large prime numbers p and q.
-	 */
-	public void generatePrimeNumbers() {
-		p = new BigInteger(primeSize, 10, new Random());
+        r = p.subtract(BigInteger.valueOf(1));  // r = ( p ï¿½C 1 ) * ( q ï¿½C 1 )
+        r = r.multiply(q.subtract(BigInteger.valueOf(1))); // (p-1)(q-1)
 
-		do {
-			q = new BigInteger(primeSize, 10, new Random());
-		} while (q.compareTo(p) == 0);
-	}
+        do {
+            E = new BigInteger(2 * primeSize, new Random());  // Choose E, coprime to and less than r
+        } while ((E.compareTo(r) > -1) || (E.gcd(r).compareTo(BigInteger.valueOf(1)) != 0));
 
-	/**
-	 * Generate Public and Private Keys.
-	 */
-	public void generatePublicPrivateKeys() {
-// N = p * q
-		N = p.multiply(q);
+        D = E.modInverse(r);  // Compute D, the inverse of E mod r
 
-// r = ( p ¨C 1 ) * ( q ¨C 1 )
-		r = p.subtract(BigInteger.valueOf(1));
-		r = r.multiply(q.subtract(BigInteger.valueOf(1))); // (p-1)(q-1)
+    }
 
-// Choose E, coprime to and less than r
-		do {
-			E = new BigInteger(2 * primeSize, new Random());
-		} while ((E.compareTo(r) != -1) || (E.gcd(r).compareTo(BigInteger.valueOf(1)) != 0));
+    /**
+     * Get prime number p.
+     *
+     * @return Prime number p.
+     */
+    public BigInteger getp() {
+        return (p);
+    }
 
-// Compute D, the inverse of E mod r
-		D = E.modInverse(r);
+    /**
+     * Get prime number q.
+     *
+     * @return Prime number q.
+     */
+    public BigInteger getq() {
+        return (q);
+    }
 
-	}
+    /**
+     * Get r.
+     *
+     * @return r.
+     */
+    public BigInteger getr() {
+        return (r);
+    }
 
-	/**
-	 * Get prime number p.
-	 *
-	 * @return Prime number p.
-	 */
-	public BigInteger getp() {
-		return (p);
-	}
+    /**
+     * Get modulus N.
+     *
+     * @return Modulus N.
+     */
+    public BigInteger getN() {
+        return (N);
+    }
 
-	/**
-	 * Get prime number q.
-	 *
-	 * @return Prime number q.
-	 */
-	public BigInteger getq() {
-		return (q);
-	}
+    /**
+     * Get Public exponent E.
+     *
+     * @return Public exponent E.
+     */
+    public BigInteger getE() {
+        return (E);
+    }
 
-	/**
-	 * Get r.
-	 *
-	 * @return r.
-	 */
-	public BigInteger getr() {
-		return (r);
-	}
+    /**
+     * Get Private exponent D.
+     *
+     * @return Private exponent D.
+     */
+    public BigInteger getD() {
+        return (D);
+    }
 
-	/**
-	 * Get modulus N.
-	 *
-	 * @return Modulus N.
-	 */
-	public BigInteger getN() {
-		return (N);
-	}
+    /**
+     * Encryption
+     */
+    public String RSAencrypt(String info) {
 
-	/**
-	 * Get Public exponent E.
-	 *
-	 * @return Public exponent E.
-	 */
-	public BigInteger getE() {
-		return (E);
-	}
+        E = new BigInteger(publicKey);
+        N = new BigInteger(randomNumber);
+        try {
+            ciphertext = encrypt(info);
+            for (int i = 0; i < ciphertext.length; i++) {
+                m[i] = ciphertext[i].intValue();
+                st[i] = String.valueOf(m[i]);
+                sb1.append(st[i]);
+                sb1.append(" ");
+                str = sb1.toString();
 
-	/**
-	 * Get Private exponent D.
-	 *
-	 * @return Private exponent D.
-	 */
-	public BigInteger getD() {
-		return (D);
-	}
+            }
+        } catch (Exception e) {
+            System.out.println(e);
+        }
 
-	/** Encryption */
+        return str;
+    }
 
-	public String RSAencrypt(String info) {
+    public BigInteger[] encrypt(String message) {
+        int i;
+        byte[] temp = new byte[1];
+        byte[] digits = new byte[8];
+        try {
+            digits = message.getBytes();
+            String ds = new String(digits);
 
-		E = new BigInteger(publicKey);
-		N = new BigInteger(randomNumber);
-		try {
-			ciphertext = encrypt(info);
-			for (int i = 0; i < ciphertext.length; i++) {
-				m[i] = ciphertext[i].intValue();
-				st[i] = String.valueOf(m[i]);
-				sb1.append(st[i]);
-				sb1.append(" ");
-				str = sb1.toString();
+            System.out.println("ds=" + ds);
 
-			}
-		} catch (Exception e) {
-			System.out.println(e);
-		}
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+        BigInteger[] bigdigits = new BigInteger[digits.length];
+        for (i = 0; i < bigdigits.length; i++) {
+            temp[0] = digits[i];
+            bigdigits[i] = new BigInteger(temp);
+        }
+        BigInteger[] encrypted = new BigInteger[bigdigits.length];
+        for (i = 0; i < bigdigits.length; i++)
+            encrypted[i] = bigdigits[i].modPow(E, N);
 
-		return str;
-	}
+        return (encrypted);
+    }
 
-	public BigInteger[] encrypt(String message) {
-		int i;
-		byte[] temp = new byte[1];
-		byte[] digits = new byte[8];
-		try {
-			digits = message.getBytes();
-			String ds = new String(digits);
+    /**
+     * Decryption
+     */
+    public String RSAdecrypt() {
+        D = new BigInteger(privateKey);
+        N = new BigInteger(randomNumber);
 
-			System.out.println("ds=" + ds);
+        System.out.println("D = " + D);
+        System.out.println("N = " + N);
 
-		} catch (Exception e) {
-			System.out.println(e);
-		}
-		BigInteger[] bigdigits = new BigInteger[digits.length];
-		for (i = 0; i < bigdigits.length; i++) {
-			temp[0] = digits[i];
-			bigdigits[i] = new BigInteger(temp);
-		}
-		BigInteger[] encrypted = new BigInteger[bigdigits.length];
-		for (i = 0; i < bigdigits.length; i++)
-			encrypted[i] = bigdigits[i].modPow(E, N);
+        int k1 = 0;
+        StringTokenizer st = new StringTokenizer(encryptedData);
+        while (st.hasMoreTokens()) {
+            sarray1[k1] = st.nextToken(" ");
+            k1++;
+        }
 
-		return (encrypted);
-	}
+        BigInteger[] ciphertext1 = new BigInteger[100000];
+        for (int i = 0; i < ciphertext1.length; i++) {
+            ciphertext1[i] = new BigInteger(sarray1[i]);
+        }
+        String recoveredPlaintext = decrypt(ciphertext1, D, N, k1);
+        System.out.println(recoveredPlaintext);
+        return recoveredPlaintext;
+    }
 
-/** Decrption */
+    public String decrypt(BigInteger[] encrypted, BigInteger D, BigInteger N, int size) {
+        int i;
+        String rs = "";
+        BigInteger[] decrypted = new BigInteger[size];
+        for (i = 0; i < decrypted.length; i++) {
+            decrypted[i] = encrypted[i].modPow(D, N);
+        }
+        char[] charArray = new char[decrypted.length];
+        byte[] byteArray = new byte[decrypted.length];
+        for (i = 0; i < charArray.length; i++) {
+            charArray[i] = (char) (decrypted[i].intValue());
+            int iv;
+            iv = decrypted[i].intValue();
+            byteArray[i] = (byte) iv;
+        }
+        try {
+            rs = new String(byteArray);
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+        return (rs);
+    }
 
-	public String RSAdecrypt() {
-		D = new BigInteger(privateKey);
-		N = new BigInteger(randomNumber);
-
-		System.out.println("D = " + D);
-		System.out.println("N = " + N);
-
-		int k1= 0;
-		StringTokenizer st = new StringTokenizer(encryptedData);
-		while (st.hasMoreTokens()) {
-			sarray1[k1] = st.nextToken(" ");
-			k1++;
-		}
-
-		BigInteger[] ciphertext1 = new BigInteger[100000];
-		for(int i = 0 ; i < ciphertext1.length; i++){
-			ciphertext1[i] = new BigInteger(sarray1[i]);
-		}
-		String recoveredPlaintext = decrypt(ciphertext1, D, N, k1);
-		System.out.println(recoveredPlaintext);
-		return recoveredPlaintext;
-	}
-
-	public String decrypt(BigInteger[] encrypted, BigInteger D, BigInteger N, int size) {
-		int i;
-		String rs = "";
-		BigInteger[] decrypted = new BigInteger[size];
-		for (i = 0; i < decrypted.length; i++) {
-			decrypted[i] = encrypted[i].modPow(D, N);
-		}
-		char[] charArray = new char[decrypted.length];
-		byte[] byteArray = new byte[decrypted.length];
-		for (i = 0; i < charArray.length; i++) {
-			charArray[i] = (char) (decrypted[i].intValue());
-			Integer iv = new Integer(0);
-			iv = decrypted[i].intValue();
-			byteArray[i] = iv.byteValue();
-		}
-		try {
-			rs = new String(byteArray);
-		} catch (Exception e) {
-			System.out.println(e);
-		}
-		return (rs);
-	}
-
-	/**
-	 * KeyGeneration Main program for Unit Testing.
-	 */
-	//public static void main(String[] args) throws IOException {
-	//	RSACipher akg = new RSACipher(8);
-	//}
+    /**
+     * KeyGeneration Main program for Unit Testing.
+     */
+    //public static void main(String[] args) throws IOException {
+    //	RSACipher akg = new RSACipher(8);
+    //}
 
 }

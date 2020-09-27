@@ -24,6 +24,14 @@ public class Main {
         pos = main.parseCipherType(args, pos);
     }
 
+    private void legit(int pos, int length, String flag) throws IllegalArgumentException {
+        if (pos == length) {
+            System.err.printf("No argument follows the flag \"%s\".", flag);
+            System.err.println();
+            throw new IllegalArgumentException();
+        }
+    }
+
     /**
      * Set up the cipher type based on the options found in args starting at position pos, and
      * return the index into args just past any cipher type options.
@@ -35,11 +43,7 @@ public class Main {
         String cmdFlag = args[pos++];
         switch (cmdFlag) {
             case "--caesar":
-                // TODO create a Caesar cipher object with the given shift parameter
-                if (pos == args.length) {
-                    System.err.println("No argument follows the flag \"--caesar\".");
-                    throw new IllegalArgumentException();
-                }
+                legit(pos, args.length, "--caesar");
                 int shift = 0;
                 try {
                     shift = Integer.parseInt(args[pos++]);
@@ -50,25 +54,21 @@ public class Main {
                 cipher = factory.getCaesarCipher(shift);
                 break;
             case "--random":
-                // TODO create a random substitution cipher object
-                if (pos == args.length) {
-                    System.err.println("No argument follows the flag \"--random\".");
-                    throw new IllegalArgumentException();
-                }
                 cipher = factory.getRandomSubstitutionCipher();
-            	break;
+                break;
             case "--monoLoad":
-                // TODO load a monoaphabetic substitution cipher from a file
-                if (pos == args.length) {
-                    System.err.println("No argument follows the flag \"--monoLoad\".");
-                    throw new IllegalArgumentException();
-                }
-                // ??????????? How to check if the input arguement is correct here?
-                cipher = factory.getCaesarCipher(shift);
+                legit(pos, args.length, "--monoLoad");
+                String encrAlph = args[pos++];
+                // TODO check the above variant encrAlph
+                // TODO Better literally add some check codes here
+                // TODO same as "if (encrAlph == xxxxx)"
+                cipher = factory.getMonoCipher(encrAlph);
                 break;
             case "--vigenere":
-                // TODO create a new Vigenere Cipher with the given key
-                break;
+                legit(pos, args.length, "--vigenere");
+                String key = args[pos++];
+                // TODO check the key same like mono
+                factory.getVigenereCipher(key);
             case "--vigenereLoad":
                 // TODO create a Vigenere cipher with key loaded from the given file
                 break;

@@ -33,7 +33,7 @@ public class CipherFactory {
      * @param key the cipher's shift parameters. Note that A is a shift of 1.
      */
     public Cipher getVigenereCipher(String key) {
-    	return (Cipher) new VigenereCipher(key); // TODO implement
+        return new VigenereCipher(key); // TODO implement
     }
 
     /**
