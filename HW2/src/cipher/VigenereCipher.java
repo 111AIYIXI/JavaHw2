@@ -12,17 +12,17 @@ public class VigenereCipher extends AbstractCipher {
     CaesarCipher[] ciphers;
 
     public VigenereCipher(String keyString) {
-        List<Integer> key = new ArrayList<>();
+        List<Integer> orderList = new ArrayList<>();
         String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         alphabet = alphabet.toLowerCase();
         keyString = keyString.toLowerCase();
         for (int i = 0; i < keyString.length(); i++) {
             int temp = alphabet.indexOf(keyString.substring(i, i + 1)) + 1;
-            key.add(temp);
+            orderList.add(temp);
         }
-        ciphers = new CaesarCipher[key.size()];
-        for (int i = 0; i < key.size(); i++) {
-            ciphers[i] = new CaesarCipher(key.get(i));
+        ciphers = new CaesarCipher[orderList.size()];
+        for (int i = 0; i < orderList.size(); i++) {
+            ciphers[i] = new CaesarCipher(orderList.get(i));
         }
     }
 

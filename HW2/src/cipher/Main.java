@@ -1,5 +1,10 @@
 package cipher;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
+
 /**
  * Command line interface to allow users to interact with your ciphers.
  *
@@ -85,10 +90,21 @@ public class Main {
                 legit(pos, args.length, "--vigenere");
                 String key = args[pos++];
                 // TODO check the key same like mono
-                factory.getVigenereCipher(key);
-            case "--vigenereLoad":
-                // TODO create a Vigenere cipher with key loaded from the given file
+                cipher = factory.getVigenereCipher(key);
                 break;
+            case "--vigenereLoad":
+                legit(pos, args.length, "--vigenereLoad");
+                String filePath = args[pos++];
+                try {
+                    InputStream in = new FileInputStream(filePath);
+                    byte[] bytes = new byte[in.available()];
+                    int len = in.read(bytes);
+                    key = Arrays.toString(bytes);
+                    break;
+                } catch (IOException e) {
+                    System.err.printf("No such file: \"%s\".", filePath);
+                    thr();
+                }
             case "--rsa":
                 // TODO create new RSA cipher
                 break;
