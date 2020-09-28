@@ -20,15 +20,34 @@ public class Main {
 
     public static void main(String[] args) {
         Main main = new Main();
-        int pos = 0;
-        pos = main.parseCipherType(args, pos);
+        try {
+            main.parseOutputOptions(args, main.parseCipherFunction(args, main.parseCipherType(args, 0)));
+        } catch (IllegalArgumentException e) {
+            System.out.println("Usage: java -jar <YOUR_JAR> <CIPHER_TYPE> <CIPHER_FUNCTION> <OUTPUT_OPTIONS>");
+        }
     }
 
-    private void legit(int pos, int length, String flag) throws IllegalArgumentException {
+    private void thr() throws IllegalArgumentException {
+        System.err.println();
+        throw new IllegalArgumentException();
+    }
+
+    private void unknown(String cmdFlag, String flagType) {
+        System.err.printf("Unknown flag \"%s\" of type \"%s\".", cmdFlag, flagType);
+        thr();
+    }
+
+    private void exhausted(int pos, int length, String flagType) {
+        if (pos == length) {
+            System.err.printf("A proper flag of type \"%s\" is missing.", flagType);
+            thr();
+        }
+    }
+
+    private void legit(int pos, int length, String flag) {
         if (pos == length) {
             System.err.printf("No argument follows the flag \"%s\".", flag);
-            System.err.println();
-            throw new IllegalArgumentException();
+            thr();
         }
     }
 
@@ -37,22 +56,20 @@ public class Main {
      * return the index into args just past any cipher type options.
      */
     private int parseCipherType(String[] args, int pos) throws IllegalArgumentException {
-        // check if arguments are exhausted
-        if (pos == args.length) return pos;
+        String flagType = "<CIPHER_TYPE>";
+        exhausted(pos, args.length, flagType);  // check if arguments are exhausted
 
         String cmdFlag = args[pos++];
         switch (cmdFlag) {
             case "--caesar":
                 legit(pos, args.length, "--caesar");
-                int shift = 0;
                 try {
-                    shift = Integer.parseInt(args[pos++]);
+                    cipher = factory.getCaesarCipher(Integer.parseInt(args[pos++]));
+                    break;
                 } catch (NumberFormatException e) {
-                    System.err.println("The argument that follows \"--caesar\" is illegal. The characters in the string must all be decimal digits, except that the first character may be an ASCII plus sign '+' ('\\u002B') to indicate a positive value.");
-                    throw new IllegalArgumentException();
+                    System.err.print("The argument that follows \"--caesar\" is illegal. The characters in the string must all be decimal digits, except that the first character may be an ASCII plus sign '+' ('\\u002B') to indicate a positive value.");
+                    thr();
                 }
-                cipher = factory.getCaesarCipher(shift);
-                break;
             case "--random":
                 cipher = factory.getRandomSubstitutionCipher();
                 break;
@@ -79,7 +96,7 @@ public class Main {
                 // TODO load an RSA key from the given file
                 break;
             default:
-                // TODO
+                unknown(cmdFlag, flagType);
         }
         return pos;
     }
@@ -89,10 +106,11 @@ public class Main {
      * starting at position pos. Return the index into args just past the parsed arguments.
      */
     private int parseCipherFunction(String[] args, int pos) throws IllegalArgumentException {
-        // check if arguments are exhausted
-        if (pos == args.length) return pos;
+        String flagType = "<CIPHER_FUNCTION>";
+        exhausted(pos, args.length, flagType);  // check if arguments are exhausted
 
-        switch (args[pos++]) {
+        String cmdFlag = args[pos++];
+        switch (cmdFlag) {
             case "--em":
                 // TODO encrypt the given string
                 break;
@@ -106,7 +124,7 @@ public class Main {
                 // TODO decrypt the contents of the given file
                 break;
             default:
-                // TODO
+                unknown(cmdFlag, flagType);
         }
         return pos;
     }
@@ -116,8 +134,8 @@ public class Main {
      * index in args just past such options.
      */
     private int parseOutputOptions(String[] args, int pos) throws IllegalArgumentException {
-        // check if arguments are exhausted
-        if (pos == args.length) return pos;
+        String flagType = "<OUTPUT_OPTIONS>";
+        exhausted(pos, args.length, flagType);  // check if arguments are exhausted
 
         String cmdFlag;
         while (pos < args.length) {
@@ -133,7 +151,7 @@ public class Main {
                     // TODO save the cipher key to a file
                     break;
                 default:
-                    // TODO
+                    unknown(cmdFlag, flagType);
             }
         }
         return pos;
