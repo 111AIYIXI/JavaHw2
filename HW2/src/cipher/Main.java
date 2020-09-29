@@ -2,7 +2,6 @@ package cipher;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -34,6 +33,7 @@ public class Main {
             main.parseOutputOptions(args, main.parseCipherFunction(args, main.parseCipherType(args, 0)));
         } catch (IllegalArgumentException e) {
             System.out.println("Usage: java -jar <YOUR_JAR> <CIPHER_TYPE> <CIPHER_FUNCTION> <OUTPUT_OPTIONS>");
+            return;
         }
 
         System.out.println("Processing...");
@@ -59,6 +59,7 @@ public class Main {
                 default:
                     break;
             }
+            if (outputStream == System.out) System.out.println();
         }
         if (saveList != null) {
             for (OutputStream outputStream : saveList) {
@@ -126,12 +127,12 @@ public class Main {
         String flagType = "<CIPHER_TYPE>";
         exhausted(pos, args.length, flagType);  // check if arguments are exhausted
 
-        String cmdFlag = args[++pos];
+        String cmdFlag = args[pos++];
         switch (cmdFlag) {
             case "--caesar":
                 legit(pos, args.length, "--caesar");
                 try {
-                    cipher = factory.getCaesarCipher(Integer.parseInt(args[++pos]));
+                    cipher = factory.getCaesarCipher(Integer.parseInt(args[pos++]));
                     break;
                 } catch (NumberFormatException e) {
                     System.err.print("The argument that follows \"--caesar\" is illegal. The characters in the string must all be decimal digits, except that the first character may be an ASCII plus sign '+' ('\\u002B') to indicate a positive value.");
@@ -142,24 +143,24 @@ public class Main {
                 break;
             case "--monoLoad":
                 legit(pos, args.length, "--monoLoad");
-                String encrAlph = args[++pos];
+                String encrAlph = args[pos++];
                 pure(encrAlph);
                 cipher = factory.getMonoCipher(encrAlph);
                 break;
             case "--vigenere":
                 legit(pos, args.length, "--vigenere");
-                String key = args[++pos];
+                String key = args[pos++];
                 pure(key);
                 cipher = factory.getVigenereCipher(key);
                 break;
             case "--vigenereLoad":
                 legit(pos, args.length, "--vigenereLoad");
-                String filePath = args[++pos];
+                String filePath = args[pos++];
                 try {
                     InputStream in = new FileInputStream(filePath);
                     byte[] bytes = new byte[in.available()];
                     int len = in.read(bytes);
-                    key = Arrays.toString(bytes);
+                    key = new String(bytes);
                     pure(key);
                     cipher = factory.getVigenereCipher(key);
                     break;
@@ -188,17 +189,17 @@ public class Main {
         String flagType = "<CIPHER_FUNCTION>";
         exhausted(pos, args.length, flagType);  // check if arguments are exhausted
 
-        String cmdFlag = args[++pos];
+        String cmdFlag = args[pos++];
         switch (cmdFlag) {
             case "--em":
                 legit(pos, args.length, "--em");
                 processType = "encrypt";
-                in = new ByteArrayInputStream(args[++pos].getBytes());
+                in = new ByteArrayInputStream(args[pos++].getBytes());
                 break;
             case "--ef":
                 legit(pos, args.length, "--em");
                 processType = "encrypt";
-                String filePath = args[++pos];
+                String filePath = args[pos++];
                 try {
                     in = new FileInputStream(filePath);
                     break;
@@ -209,12 +210,12 @@ public class Main {
             case "--dm":
                 legit(pos, args.length, "--em");
                 processType = "decrypt";
-                in = new ByteArrayInputStream(args[++pos].getBytes());
+                in = new ByteArrayInputStream(args[pos++].getBytes());
                 break;
             case "--df":
                 legit(pos, args.length, "--df");
                 processType = "decrypt";
-                filePath = args[++pos];
+                filePath = args[pos++];
                 try {
                     in = new FileInputStream(filePath);
                     break;
@@ -239,20 +240,20 @@ public class Main {
         outList = new ArrayList<>();
         String cmdFlag;
         while (pos < args.length) {
-            switch (cmdFlag = args[++pos]) {
+            switch (cmdFlag = args[pos++]) {
                 case "--print":
                     outList.add(System.out);
                     break;
                 case "--out":
                     legit(pos, args.length, "--out");
-                    outList.add(getFileOutputStream(args[++pos]));
+                    outList.add(getFileOutputStream(args[pos++]));
                     break;
                 case "--save":
                     legit(pos, args.length, "--save");
                     if (saveList == null) {
                         saveList = new ArrayList<>();
                     }
-                    saveList.add(getFileOutputStream(args[++pos]));
+                    saveList.add(getFileOutputStream(args[pos++]));
                     break;
                 default:
                     unknown(cmdFlag, flagType);

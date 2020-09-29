@@ -1,11 +1,12 @@
 package cipher;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.math.BigInteger;
 import java.util.Random;
-import java.util.*;
-import javax.swing.*;
+import java.util.StringTokenizer;
 
-public class RSACipher {
+public class RSACipher extends AbstractCipher {
     /**
      * Bit length of each prime number.
      */
@@ -32,11 +33,6 @@ public class RSACipher {
     BigInteger E, D;
 
     String nt, dt, et;
-    /**
-     * Constructor.
-     *
-     * @param primeSize Bit length of each prime number.
-     */
 
     String publicKey;
     String privateKey;
@@ -49,8 +45,12 @@ public class RSACipher {
     String sarray1[] = new String[100000];
 
     StringBuffer sb1 = new StringBuffer();
-    String inputMessage, encryptedData, decryptedMessage;
 
+    /**
+     * Constructor.
+     *
+     * @param primeSize Bit length of each prime number.
+     */
     public RSACipher(int primeSize) {
         this.primeSize = primeSize;
         generatePrimeNumbers();  // Generate two distinct large prime numbers p and q.
@@ -62,16 +62,6 @@ public class RSACipher {
         publicKey = publicKeyB.toString();
         privateKey = privateKeyB.toString();
         randomNumber = randomNumberB.toString();
-        System.out.println("Public Key (E,N): " + publicKey + "," + randomNumber);
-        System.out.println("Private Key (D,N): " + privateKey + "," + randomNumber);
-
-        inputMessage = JOptionPane.showInputDialog(null, "Enter message to encrypt");  //Encrypt data
-        encryptedData = RSAencrypt(inputMessage);
-        System.out.println("Encrypted message" + encryptedData);
-        JOptionPane.showMessageDialog(null, "Encrypted Data " + "\n" + encryptedData);
-
-        decryptedMessage = RSAdecrypt();  //Decrypt data
-        JOptionPane.showMessageDialog(null, "Decrypted Data " + "\n" + decryptedMessage);
     }
 
     /**
@@ -89,10 +79,9 @@ public class RSACipher {
      * Generate Public and Private Keys.
      */
     public void generatePublicPrivateKeys() {
-
         N = p.multiply(q);  // N = p * q
 
-        r = p.subtract(BigInteger.valueOf(1));  
+        r = p.subtract(BigInteger.valueOf(1));
         r = r.multiply(q.subtract(BigInteger.valueOf(1)));
 
         do {
@@ -100,7 +89,6 @@ public class RSACipher {
         } while ((E.compareTo(r) > -1) || (E.gcd(r).compareTo(BigInteger.valueOf(1)) != 0));
 
         D = E.modInverse(r);  // Compute D, the inverse of E mod r
-
     }
 
     /**
@@ -157,31 +145,30 @@ public class RSACipher {
         return (D);
     }
 
-    /**
-     * Encryption
-     */
-    public String RSAencrypt(String info) {
-
-        E = new BigInteger(publicKey);
-        N = new BigInteger(randomNumber);
+    public String rsaDecrypt(BigInteger[] encrypted, BigInteger D, BigInteger N, int size) {
+        int i;
+        String rs = "";
+        BigInteger[] decrypted = new BigInteger[size];
+        for (i = 0; i < decrypted.length; i++) {
+            decrypted[i] = encrypted[i].modPow(D, N);
+        }
+        char[] charArray = new char[decrypted.length];
+        byte[] byteArray = new byte[decrypted.length];
+        for (i = 0; i < charArray.length; i++) {
+            charArray[i] = (char) (decrypted[i].intValue());
+            int iv;
+            iv = decrypted[i].intValue();
+            byteArray[i] = (byte) iv;
+        }
         try {
-            ciphertext = encrypt(info);
-            for (int i = 0; i < ciphertext.length; i++) {
-                m[i] = ciphertext[i].intValue();
-                st[i] = String.valueOf(m[i]);
-                sb1.append(st[i]);
-                sb1.append(" ");
-                str = sb1.toString();
-
-            }
+            rs = new String(byteArray);
         } catch (Exception e) {
             System.out.println(e);
         }
-
-        return str;
+        return (rs);
     }
 
-    public BigInteger[] encrypt(String message) {
+    public BigInteger[] rsaEncrypt(String message) {
         int i;
         byte[] temp = new byte[1]; //
         byte[] digits = new byte[8];
@@ -206,10 +193,29 @@ public class RSACipher {
         return (encrypted);
     }
 
-    /**
-     * Decryption
-     */
-    public String RSAdecrypt() {
+    @Override
+    public String encrypt(String info) {
+        E = new BigInteger(publicKey);
+        N = new BigInteger(randomNumber);
+        try {
+            ciphertext = rsaEncrypt(info);
+            for (int i = 0; i < ciphertext.length; i++) {
+                m[i] = ciphertext[i].intValue();
+                st[i] = String.valueOf(m[i]);
+                sb1.append(st[i]);
+                sb1.append(" ");
+                str = sb1.toString();
+
+            }
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+
+        return str;
+    }
+
+    @Override
+    public String decrypt(String encryptedData) {
         D = new BigInteger(privateKey);
         N = new BigInteger(randomNumber);
 
@@ -227,32 +233,13 @@ public class RSACipher {
         for (int i = 0; i < ciphertext1.length; i++) {
             ciphertext1[i] = new BigInteger(sarray1[i]);
         }
-        String recoveredPlaintext = decrypt(ciphertext1, D, N, k1);
+        String recoveredPlaintext = rsaDecrypt(ciphertext1, D, N, k1);
         System.out.println(recoveredPlaintext);
         return recoveredPlaintext;
     }
 
-    public String decrypt(BigInteger[] encrypted, BigInteger D, BigInteger N, int size) {
-        int i;
-        String rs = "";
-        BigInteger[] decrypted = new BigInteger[size];
-        for (i = 0; i < decrypted.length; i++) {
-            decrypted[i] = encrypted[i].modPow(D, N);
-        }
-        char[] charArray = new char[decrypted.length];
-        byte[] byteArray = new byte[decrypted.length];
-        for (i = 0; i < charArray.length; i++) {
-            charArray[i] = (char) (decrypted[i].intValue());
-            int iv;
-            iv = decrypted[i].intValue();
-            byteArray[i] = (byte) iv;
-        }
-        try {
-            rs = new String(byteArray);
-        } catch (Exception e) {
-            System.out.println(e);
-        }
-        return (rs);
-    }
+    @Override
+    public void save(OutputStream out) throws IOException {
 
+    }
 }
