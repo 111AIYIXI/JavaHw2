@@ -43,6 +43,14 @@ public class Main {
         thr();
     }
 
+    private void pure(String encrAlph) {
+        Pattern pattern = Pattern.compile("^[A-Za-z]*$");
+        if (!pattern.matcher(encrAlph).matches()) {
+            System.err.printf("The given encrypted alphabet \"%s\" is malformed.", encrAlph);
+            thr();
+        }
+    }
+
     private void exhausted(int pos, int length, String flagType) {
         if (pos == length) {
             System.err.printf("A proper flag of type \"%s\" is missing.", flagType);
@@ -82,17 +90,13 @@ public class Main {
             case "--monoLoad":
                 legit(pos, args.length, "--monoLoad");
                 String encrAlph = args[++pos];
-                Pattern pattern = Pattern.compile("^[A-Za-z]*$");
-                if (!pattern.matcher(encrAlph).matches()) {
-                    System.err.printf("The given encrypted alphabet \"%s\" is malformed.", encrAlph);
-                    thr();
-                }
+                pure(encrAlph);
                 cipher = factory.getMonoCipher(encrAlph);
                 break;
             case "--vigenere":
                 legit(pos, args.length, "--vigenere");
                 String key = args[++pos];
-                // TODO check the key same like mono
+                pure(key);
                 cipher = factory.getVigenereCipher(key);
                 break;
             case "--vigenereLoad":
@@ -103,6 +107,8 @@ public class Main {
                     byte[] bytes = new byte[in.available()];
                     int len = in.read(bytes);
                     key = Arrays.toString(bytes);
+                    pure(key);
+                    cipher = factory.getVigenereCipher(key);
                     break;
                 } catch (IOException e) {
                     System.err.printf("No such file: \"%s\".", filePath);
@@ -113,6 +119,7 @@ public class Main {
                 break;
             case "--rsaLoad":
                 // TODO load an RSA key from the given file
+                cipher = factory.getRSACipher();
                 break;
             default:
                 unknown(cmdFlag, flagType);
