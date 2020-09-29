@@ -20,6 +20,7 @@ public class Main {
     public static final CipherFactory factory;
     private Cipher cipher;
     private InputStream in;
+    private String processType;
     private List<OutputStream> outList;
     private List<OutputStream> saveList;
 
@@ -49,7 +50,15 @@ public class Main {
     private void process() throws IOException {
         for (OutputStream outputStream : outList) {
             in.reset();
-            cipher.encrypt(in, outputStream);
+            switch (processType) {
+                case "encrypt":
+                    cipher.encrypt(in, outputStream);
+                    break;
+                case "decrypt":
+                    cipher.decrypt(in, outputStream);
+                default:
+                    break;
+            }
         }
         if (saveList != null) {
             for (OutputStream outputStream : saveList) {
@@ -183,10 +192,12 @@ public class Main {
         switch (cmdFlag) {
             case "--em":
                 legit(pos, args.length, "--em");
+                processType = "encrypt";
                 in = new ByteArrayInputStream(args[++pos].getBytes());
                 break;
             case "--ef":
                 legit(pos, args.length, "--em");
+                processType = "encrypt";
                 String filePath = args[++pos];
                 try {
                     in = new FileInputStream(filePath);
@@ -197,10 +208,12 @@ public class Main {
                 }
             case "--dm":
                 legit(pos, args.length, "--em");
+                processType = "decrypt";
                 in = new ByteArrayInputStream(args[++pos].getBytes());
                 break;
             case "--df":
                 legit(pos, args.length, "--df");
+                processType = "decrypt";
                 filePath = args[++pos];
                 try {
                     in = new FileInputStream(filePath);
