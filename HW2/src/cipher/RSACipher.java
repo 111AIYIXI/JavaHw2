@@ -255,11 +255,4 @@ public class RSACipher {
         return (rs);
     }
 
-    /**
-     * KeyGeneration Main program for Unit Testing.
-     */
-    //public static void main(String[] args) throws IOException {
-    //	RSACipher akg = new RSACipher(8);
-    //}
-
 }
