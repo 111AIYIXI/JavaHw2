@@ -1,9 +1,9 @@
 package cipher;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Pattern;
 
 /**
@@ -19,6 +19,9 @@ import java.util.regex.Pattern;
 public class Main {
     public static final CipherFactory factory;
     private Cipher cipher;
+    private InputStream in;
+    private List<OutputStream> outList;
+    private List<OutputStream> saveList;
 
     static {
         factory = new CipherFactory();
@@ -31,6 +34,47 @@ public class Main {
         } catch (IllegalArgumentException e) {
             System.out.println("Usage: java -jar <YOUR_JAR> <CIPHER_TYPE> <CIPHER_FUNCTION> <OUTPUT_OPTIONS>");
         }
+
+        System.out.println("Processing...");
+
+        try {
+            main.process();
+            System.out.println("Done.");
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("Aborted.");
+        }
+    }
+
+    private void process() throws IOException {
+        for (OutputStream outputStream : outList) {
+            in.reset();
+            cipher.encrypt(in, outputStream);
+        }
+        if (saveList != null) {
+            for (OutputStream outputStream : saveList) {
+                cipher.save(outputStream);
+            }
+        }
+    }
+
+    private FileOutputStream getFileOutputStream(String filePath) {
+        try {
+            File file = new File(filePath);
+            if (!file.exists()) {
+                if (file.createNewFile()) {
+                    throw new IOException();
+                }
+            }
+            if (!file.canWrite()) {
+                throw new IOException();
+            }
+            return new FileOutputStream(file);
+        } catch (IOException e) {
+            System.err.printf("An I/O error occurred due to \"%s\".", filePath);
+            thr();
+        }
+        return null;
     }
 
     private void thr() throws IllegalArgumentException {
@@ -139,31 +183,32 @@ public class Main {
         switch (cmdFlag) {
             case "--em":
                 legit(pos, args.length, "--em");
-                String plaintext = args[++pos];
-                String ciphertext = cipher.encrypt(plaintext);
+                in = new ByteArrayInputStream(args[++pos].getBytes());
                 break;
             case "--ef":
                 legit(pos, args.length, "--em");
                 String filePath = args[++pos];
                 try {
-                    InputStream in = new FileInputStream(filePath);
-                    byte[] bytes = new byte[in.available()];
-                    int len = in.read(bytes);
-                    plaintext = Arrays.toString(bytes);
-                    cipher.encrypt(in);
+                    in = new FileInputStream(filePath);
                     break;
-                } catch (IOException e) {
+                } catch (FileNotFoundException e) {
                     System.err.printf("No such file: \"%s\".", filePath);
                     thr();
                 }
             case "--dm":
                 legit(pos, args.length, "--em");
-                ciphertext = args[++pos];
-                plaintext = cipher.decrypt(ciphertext);
+                in = new ByteArrayInputStream(args[++pos].getBytes());
                 break;
             case "--df":
-                // TODO decrypt the contents of the given file
-                break;
+                legit(pos, args.length, "--df");
+                filePath = args[++pos];
+                try {
+                    in = new FileInputStream(filePath);
+                    break;
+                } catch (FileNotFoundException e) {
+                    System.err.printf("No such file: \"%s\".", filePath);
+                    thr();
+                }
             default:
                 unknown(cmdFlag, flagType);
         }
@@ -178,18 +223,23 @@ public class Main {
         String flagType = "<OUTPUT_OPTIONS>";
         exhausted(pos, args.length, flagType);  // check if arguments are exhausted
 
+        outList = new ArrayList<>();
         String cmdFlag;
         while (pos < args.length) {
             switch (cmdFlag = args[++pos]) {
                 case "--print":
-                    // TODO print result of applying the cipher to the console -- substitution
-                    // ciphers only
+                    outList.add(System.out);
                     break;
                 case "--out":
-                    // TODO output result of applying the cipher to a file
+                    legit(pos, args.length, "--out");
+                    outList.add(getFileOutputStream(args[++pos]));
                     break;
                 case "--save":
-                    // TODO save the cipher key to a file
+                    legit(pos, args.length, "--save");
+                    if (saveList == null) {
+                        saveList = new ArrayList<>();
+                    }
+                    saveList.add(getFileOutputStream(args[++pos]));
                     break;
                 default:
                     unknown(cmdFlag, flagType);
