@@ -54,7 +54,8 @@ public class CaesarCipher extends AbstractCipher {
 
     @Override
     public void save(OutputStream out) throws IOException {
-
+        out.write(String.valueOf(theKey).getBytes());
+        out.flush();
     }
 
     @Override

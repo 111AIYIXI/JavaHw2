@@ -138,13 +138,28 @@ public class Main {
         String cmdFlag = args[++pos];
         switch (cmdFlag) {
             case "--em":
-                // TODO encrypt the given string
+                legit(pos, args.length, "--em");
+                String plaintext = args[++pos];
+                String ciphertext = cipher.encrypt(plaintext);
                 break;
             case "--ef":
-                // TODO encrypt the contents of the given file
-                break;
+                legit(pos, args.length, "--em");
+                String filePath = args[++pos];
+                try {
+                    InputStream in = new FileInputStream(filePath);
+                    byte[] bytes = new byte[in.available()];
+                    int len = in.read(bytes);
+                    plaintext = Arrays.toString(bytes);
+                    cipher.encrypt(in);
+                    break;
+                } catch (IOException e) {
+                    System.err.printf("No such file: \"%s\".", filePath);
+                    thr();
+                }
             case "--dm":
-                // TODO decrypt the given string -- substitution ciphers only
+                legit(pos, args.length, "--em");
+                ciphertext = args[++pos];
+                plaintext = cipher.decrypt(ciphertext);
                 break;
             case "--df":
                 // TODO decrypt the contents of the given file
