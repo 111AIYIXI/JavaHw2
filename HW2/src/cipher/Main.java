@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.regex.Pattern;
 
 /**
  * Command line interface to allow users to interact with your ciphers.
@@ -64,12 +65,12 @@ public class Main {
         String flagType = "<CIPHER_TYPE>";
         exhausted(pos, args.length, flagType);  // check if arguments are exhausted
 
-        String cmdFlag = args[pos++];
+        String cmdFlag = args[++pos];
         switch (cmdFlag) {
             case "--caesar":
                 legit(pos, args.length, "--caesar");
                 try {
-                    cipher = factory.getCaesarCipher(Integer.parseInt(args[pos++]));
+                    cipher = factory.getCaesarCipher(Integer.parseInt(args[++pos]));
                     break;
                 } catch (NumberFormatException e) {
                     System.err.print("The argument that follows \"--caesar\" is illegal. The characters in the string must all be decimal digits, except that the first character may be an ASCII plus sign '+' ('\\u002B') to indicate a positive value.");
@@ -80,21 +81,23 @@ public class Main {
                 break;
             case "--monoLoad":
                 legit(pos, args.length, "--monoLoad");
-                String encrAlph = args[pos++];
-                // TODO check the above variant encrAlph
-                // TODO Better literally add some check codes here
-                // TODO same as "if (encrAlph == xxxxx)"
+                String encrAlph = args[++pos];
+                Pattern pattern = Pattern.compile("^[A-Za-z]*$");
+                if (!pattern.matcher(encrAlph).matches()) {
+                    System.err.printf("The given encrypted alphabet \"%s\" is malformed.", encrAlph);
+                    thr();
+                }
                 cipher = factory.getMonoCipher(encrAlph);
                 break;
             case "--vigenere":
                 legit(pos, args.length, "--vigenere");
-                String key = args[pos++];
+                String key = args[++pos];
                 // TODO check the key same like mono
                 cipher = factory.getVigenereCipher(key);
                 break;
             case "--vigenereLoad":
                 legit(pos, args.length, "--vigenereLoad");
-                String filePath = args[pos++];
+                String filePath = args[++pos];
                 try {
                     InputStream in = new FileInputStream(filePath);
                     byte[] bytes = new byte[in.available()];
@@ -106,7 +109,7 @@ public class Main {
                     thr();
                 }
             case "--rsa":
-                // TODO create new RSA cipher
+                cipher = factory.getRSACipher();
                 break;
             case "--rsaLoad":
                 // TODO load an RSA key from the given file
@@ -125,7 +128,7 @@ public class Main {
         String flagType = "<CIPHER_FUNCTION>";
         exhausted(pos, args.length, flagType);  // check if arguments are exhausted
 
-        String cmdFlag = args[pos++];
+        String cmdFlag = args[++pos];
         switch (cmdFlag) {
             case "--em":
                 // TODO encrypt the given string
@@ -155,7 +158,7 @@ public class Main {
 
         String cmdFlag;
         while (pos < args.length) {
-            switch (cmdFlag = args[pos++]) {
+            switch (cmdFlag = args[++pos]) {
                 case "--print":
                     // TODO print result of applying the cipher to the console -- substitution
                     // ciphers only
