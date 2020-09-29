@@ -22,7 +22,7 @@ public class RSACipher {
     BigInteger N;
 
     /**
-     * r = ( p �C 1 ) * ( q �C 1 )
+     * r = ( p-1 )*( q-1 )
      */
     BigInteger r;
 
@@ -92,8 +92,8 @@ public class RSACipher {
 
         N = p.multiply(q);  // N = p * q
 
-        r = p.subtract(BigInteger.valueOf(1));  // r = ( p �C 1 ) * ( q �C 1 )
-        r = r.multiply(q.subtract(BigInteger.valueOf(1))); // (p-1)(q-1)
+        r = p.subtract(BigInteger.valueOf(1));  
+        r = r.multiply(q.subtract(BigInteger.valueOf(1)));
 
         do {
             E = new BigInteger(2 * primeSize, new Random());  // Choose E, coprime to and less than r
@@ -183,7 +183,7 @@ public class RSACipher {
 
     public BigInteger[] encrypt(String message) {
         int i;
-        byte[] temp = new byte[1];
+        byte[] temp = new byte[1]; //
         byte[] digits = new byte[8];
         try {
             digits = message.getBytes();
