@@ -51,7 +51,8 @@ public class MonoCipher extends AbstractCipher{
 
 	@Override
 	public void save(OutputStream out) throws IOException {
-
+		out.write(shiftedAlphabet.getBytes());
+		out.flush();
 	}
 
 	@Override
